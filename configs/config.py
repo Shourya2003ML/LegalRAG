@@ -1,7 +1,7 @@
 # type of rag
 RAG_TYPE = "naive-rag"
 
-ALLOWED_COLLECTIONS = "naive_rag_collection"
+ALLOWED_COLLECTIONS = ["naive_rag_collection"]
 
 # where the documents are stored
 DATA_DIR = "data/source_data/naive_rag"
