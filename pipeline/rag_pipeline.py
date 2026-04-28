@@ -13,7 +13,6 @@ load_dotenv()
 groq_key = os.getenv("GROQ_API_KEY")
 api_key = SecretStr(groq_key) if groq_key else None
 
-
 class BasicRAGPipeline:
     def __init__(
         self, 
