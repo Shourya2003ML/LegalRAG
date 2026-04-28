@@ -1,0 +1,31 @@
+import os
+import fitz
+
+def load_pdfs_from_folder(folder_path: str):
+    """Load and concatenate text from all PDFs in a folder using PyMuPDF"""
+    documents = []
+    if not os.path.exists(folder_path):
+        raise ValueError(f"Path Not Found: {folder_path}")
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith('.pdf'):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                doc = fitz.open(file_path)
+                text = ""
+                for page in doc:
+                    text += page.get_text("text", sort = True) + "\n"
+                documents.append(text)
+                doc.close()
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
+    return documents
+
+def chunk_text(text:str, chunk_size: int = 500, overlap: int = 50):
+    """Chunking of text with overlapping chunks"""
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = min(start+chunk_size, len(text))
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+    return chunks

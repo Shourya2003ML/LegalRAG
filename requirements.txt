@@ -1,0 +1,9 @@
+langchain
+langchain-community
+langchain-groq
+langchain-chroma
+langchain-huggingface
+sentence-transformers
+PyMuPDF
+python-dotenv
+langchain-text-splitters
