@@ -7,3 +7,4 @@ sentence-transformers
 PyMuPDF
 python-dotenv
 langchain-text-splitters
+streamlit
