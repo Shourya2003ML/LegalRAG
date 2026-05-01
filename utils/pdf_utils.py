@@ -3,7 +3,6 @@ import fitz
 from typing import cast
 
 def load_pdfs_from_folder(folder_path: str):
-    """Load and concatenate text from all PDFs in a folder using PyMuPDF"""
     documents = []
     if not os.path.exists(folder_path):
         raise ValueError(f"Path Not Found: {folder_path}")
@@ -14,8 +13,8 @@ def load_pdfs_from_folder(folder_path: str):
                 doc = fitz.open(file_path)
                 text = ""
                 for page in doc:
-                    text += cast("str", page.get_text("text", sort = True))
-                documents.append(text)
+                    text += cast("str", page.get_text("text", sort=True))
+                documents.append({"text": text, "filename": filename})
                 doc.close()
             except Exception as e:
                 print(f"Error processing {filename}: {e}")

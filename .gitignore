@@ -4,4 +4,9 @@ __pycache__/
 
 # Ignore environment files
 .env
-venv/
+.venv/
+venv
+
+#Ignoring the data folder holding files
+data
+.streamlit

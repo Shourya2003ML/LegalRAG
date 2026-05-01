@@ -22,9 +22,12 @@ class BasicRAGRetriever:
         print(f"Indexing PDFs for collection: {self.collection_name}")
         pdf_texts = load_pdfs_from_folder(self.data_dir)
         docs = []   
-        for text in pdf_texts:
-            docs.extend(self.text_splitter.create_documents([text]))
-
+        for item in pdf_texts:
+            chunks = self.text_splitter.create_documents(
+                [item["text"]],
+                metadatas = [{"sources": item["filename"]}]
+            )
+            docs.extend(chunks)
         self.vectorstore = Chroma.from_documents(
             docs,
             self.embedding,
@@ -42,7 +45,17 @@ class BasicRAGRetriever:
                 collection_name = self.collection_name
             )
         docs = self.vectorstore.similarity_search(query, k = top_k)
-        return [doc.page_content for doc in docs]
+
+        #checking what source is returned by chromadb
+        print(docs[0].metadata)
+        
+        results = []
+        for doc in docs:
+            results.append({
+                "content":doc.page_content,
+                "source" : doc.metadata.get("sources", )
+            })
+        return results
     
     def get_collection_info(self):
         """Current collection status"""

@@ -3,7 +3,7 @@ from retriever.retriever import BasicRAGRetriever
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from prompts.prompts import NAIVE_RAG_PROMPT
-from configs.config import GROQ_MODEL, RAG_TYPE
+from configs.config import GROQ_MODEL, RAG_TYPE, EMBEDDING_MODEL
 
 from pydantic import SecretStr
 import os
@@ -25,11 +25,21 @@ class BasicRAGPipeline:
         self.llm = ChatGroq(temperature = 0.2, model = groq_model, api_key = api_key)
 
     def answer(self, query, top_k = 3):
-        contexts = self.retriever.retrieve(query, top_k = top_k)
+        results = self.retriever.retrieve(query, top_k = top_k)
+        contexts = "\n\n".join([r["content"] for r in results])
+        sources = list(set(r["source"] for r in results)) 
         prompt = NAIVE_RAG_PROMPT.format(context = contexts, question = query)
         response = self.llm.invoke(prompt)  
-        return response.content if hasattr(response, 'content') else response
-    
+        content =  response.content if hasattr(response, 'content') else response
+        return{
+            "answer" : content,
+            "sources" : sources,
+            "rag_type" : self.rag_type,
+            "retrieval_technique" : "Cosine Similarity Search",
+            "embedding_model" : EMBEDDING_MODEL,
+            "top_k" : top_k
+        }
+
     def get_pipeline_info(self):
         """Getting info about current pipeline and collection"""
         return self.retriever.get_collection_info()
