@@ -141,16 +141,16 @@ else:
         })
 
         #Type of rag and the sources used are displayed here
-        # with st.expander("Sources & Retrieval Info"):
-        #     st.write("Documents Used")
-        #     for src in sources:
-        #         st.write(f"- `{src}`")
-        #     st.divider()
-        #     st.write("**Retrieval Details:**")
-        #     st.write(f"- **Technique:** `Cosine Similarity Search`")
-        #     st.write(f"- **Embedding model:** `{EMBEDDING_MODEL}`")
-        #     st.write(f"- **RAG pipeline:** `{rag_type}`")
-        #     st.write(f"- **Chunks retrieved:** `{top_k}`")
+        with st.expander("Sources & Retrieval Info"):
+            st.write("Documents Used")
+            for src in sources:
+                st.write(f"- `{src}`")
+            st.divider()
+            st.write("**Retrieval Details:**")
+            st.write(f"- **Technique:** `Cosine Similarity Search`")
+            st.write(f"- **Embedding model:** `{EMBEDDING_MODEL}`")
+            st.write(f"- **RAG pipeline:** `{rag_type}`")
+            st.write(f"- **Chunks retrieved:** `{top_k}`")
 
     #Clear Chat
     if st.session_state.messages:
