@@ -5,6 +5,7 @@ from pipeline.rag_pipeline import BasicRAGPipeline
 from configs.config import EMBEDDING_MODEL
 
 load_dotenv()
+groq_key = os.getenv("GROQ_API_KEY")
 
 #Basic Page Initialization 
 st.set_page_config(page_title = "LegalRAG", layout = "centered")
