@@ -10,3 +10,4 @@ chroma_db/
 
 #Ignoring the data folder holding files
 .streamlit
+.idea

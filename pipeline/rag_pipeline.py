@@ -2,11 +2,10 @@ import os
 from retriever.retriever import BasicRAGRetriever
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
-from prompts.prompts import NAIVE_RAG_PROMPT
+from prompts.prompts import NAIVE_RAG_PROMPT, QUERY_REWRITE_PROMPT
 from configs.config import GROQ_MODEL, RAG_TYPE, EMBEDDING_MODEL
-
 from pydantic import SecretStr
-import os
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 load_dotenv()
 
@@ -24,20 +23,69 @@ class BasicRAGPipeline:
         self.retriever = BasicRAGRetriever(data_dir, rag_type=rag_type)
         self.llm = ChatGroq(temperature = 0.2, model = groq_model, api_key = api_key)
 
-    def answer(self, query, top_k = 3):
-        results = self.retriever.retrieve(query, top_k = top_k)
+    def _rewrite_query(self, query, chat_history):
+        """
+        Rewrites the query into a standlone questions using chat history
+        """
+        
+        #when no history write nothing
+        if not chat_history or len(chat_history) < 2:
+            return query
+        
+        #Formatting query rewritting
+        history_text = ""
+        for turn in chat_history:
+            role = "User" if turn["role"] == "user" else "Assistant"
+            history_text += f"{role}: {turn['content']}\n"
+
+        prompt = QUERY_REWRITE_PROMPT.format(
+            history = history_text,
+            question = query
+        )
+
+        response = self.llm.invoke([HumanMessage(content=prompt)])
+        rewritten = response.content.strip() if hasattr(response, "content") else query
+
+        print(f"Original query: {query}")
+        print(f"Rewritten query: {rewritten}")
+
+        return rewritten
+
+    def answer(self, query, chat_history = None, top_k = 3, use_reranking = True, use_query_rewriting = True):
+
+        #calling rewrite query
+        rewritten_query = self._rewrite_query(query, chat_history)
+
+        results = self.retriever.retrieve(rewritten_query, top_k = top_k)
         contexts = "\n\n".join([r["content"] for r in results])
-        sources = list(set(r["source"] for r in results)) 
-        prompt = NAIVE_RAG_PROMPT.format(context = contexts, question = query)
-        response = self.llm.invoke(prompt)  
+        sources = list(set(r["source"] for r in results))
+        
+        messages = [] 
+        system_prompt = NAIVE_RAG_PROMPT.format(context = contexts, question = query)
+        
+        #using systemmessage wrapper
+        messages.append(SystemMessage(content = system_prompt))
+
+        if chat_history:
+            for turn in chat_history:
+                if turn["role"] == "user":
+                    messages.append(HumanMessage(content = turn["content"]))
+                elif turn["role"] == "assistant":
+                    messages.append(AIMessage(content = turn["content"]))
+
+        #Add current question
+        messages.append(HumanMessage(content = query))
+
+        response = self.llm.invoke(messages)  
         content =  response.content if hasattr(response, 'content') else response
         return{
             "answer" : content,
             "sources" : sources,
             "rag_type" : self.rag_type,
-            "retrieval_technique" : "Cosine Similarity Search",
+            "retrieval_technique" : "Hybrid (BM25 + Semantic Search + Reranking)",
             "embedding_model" : EMBEDDING_MODEL,
-            "top_k" : top_k
+            "top_k" : top_k,
+            "reranker_model" : "cross-encoder/ms-marco-MiniLM-L-6-v2"
         }
 
     def get_pipeline_info(self):

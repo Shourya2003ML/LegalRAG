@@ -13,6 +13,12 @@ EMBEDDING_MODEL = "all-MiniLM-L6-V2"
 
 #Fetching Top 5 relevant Chunks
 TOP_K = 5
+BM25_TOP_K = 5 
+VECTOR_TOP_K = 5
+RERANK_TOP_K = 3
+
+#Reranking model
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 #LLM Model
 GROQ_MODEL = "openai/gpt-oss-20b"
