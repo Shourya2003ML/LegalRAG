@@ -1,10 +1,10 @@
-# ⚖️ LegalRAG
+# LegalRAG
 
 LegalRAG is a Retrieval-Augmented Generation (RAG) application for legal document analysis. Upload any legal PDF — contracts, agreements, acts — and ask questions about it in plain English. The system retrieves the most relevant chunks from the document and uses an LLM to generate accurate, context-grounded answers.
 
 ---
 
-## 🚀 Setup
+## Setup
 
 ### 1. Clone the repository
 ```bash
@@ -33,7 +33,7 @@ Get your free API key at [console.groq.com](https://console.groq.com).
 
 ---
 
-## ▶️ Run Locally
+## Run Locally
 
 ```bash
 streamlit run app.py
@@ -49,7 +49,7 @@ Then open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 🐳 Run with Docker
+## Run with Docker
 
 ### Prerequisites
 Make sure Docker is installed:
@@ -101,7 +101,7 @@ Then open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |---|---|
@@ -116,7 +116,7 @@ Then open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 LegalRAG/
@@ -145,7 +145,7 @@ LegalRAG/
 
 ---
 
-## ⚠️ Notes
+## Notes
 
 - Never commit your API key. Add these to `.gitignore`:
   ```
