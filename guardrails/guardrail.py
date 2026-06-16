@@ -14,7 +14,8 @@ class LLMGuardrail:
         self.llm = ChatGroq(
             temperature = 0.0,
             model= GROQ_MODEL,
-            api_key = api_key
+            api_key = api_key, 
+            stop_sequences = []
         )
 
     def _classify(self, prompt):
