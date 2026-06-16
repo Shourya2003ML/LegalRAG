@@ -1,15 +1,18 @@
 streamlit
-langchain
-langchain-groq
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-groq>=0.2.0
 langchain-chroma
 langchain-huggingface
 langchain-text-splitters
-langchain-community
+langchain-community>=0.3.0
 chromadb
 pymupdf
 python-dotenv
 sentence-transformers
 rank-bm25
 torch --index-url https://download.pytorch.org/whl/cpu
-ragas
+ragas>=0.2.0
 datasets
+langchain-google-vertexai>=1.0.0
+pydantic>=2.0.0
