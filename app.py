@@ -85,6 +85,7 @@ with st.sidebar:
     use_reranking = st.toggle(
         "Enable reranking",
         value = True,
+        disabled = st.session_state.indexed,
         help = "Reranking helps improving the answers by using Cross Encoder Model but increases latency." \
         "Recommended if not getting good results"
     )
@@ -92,6 +93,7 @@ with st.sidebar:
     use_query_rewriting = st.toggle(
         "Enable query rewriting",
         value = True,
+        disabled = st.session_state.indexed,
         help = "Rewriting improves follow-up questions before retrieval. Improves responses for long conversations with follow ups"
     )
 
@@ -224,6 +226,10 @@ else:
                         use_query_rewriting=use_query_rewriting,
                     )
                     answer          = result["answer"]
+
+                    #if answer is blocked due to guardrail
+                    if result.get("blocked"):
+                        st.warning("Query blocked by safety guardrail.")
                     sources         = result["sources"]
                     rag_type        = result["rag_type"]
                     top_k_used      = result["top_k"]
