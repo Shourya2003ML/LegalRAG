@@ -1,0 +1,52 @@
+[
+    {
+        "question": "What is the minimum age below which a child cannot be held criminally liable under the Indian Penal Code?",
+        "ground_truth": "Under Section 82 of the Indian Penal Code, a child under seven years of age cannot be held criminally liable as nothing is an offence which is done by a child under seven years of age.",
+        "source": "criminal_law.pdf"
+    },
+    {
+        "question": "What punishments are prescribed under the Indian Penal Code?",
+        "ground_truth": "Under Section 53 of the Indian Penal Code, the punishments are death, imprisonment for life, imprisonment which may be rigorous or simple, forfeiture of property, and fine.",
+        "source": "criminal_law.pdf"
+    },
+    {
+        "question": "What does the term good faith mean under the Indian Penal Code?",
+        "ground_truth": "Under Section 52 of the Indian Penal Code, nothing is said to be done or believed in good faith which is done or believed without due care and attention.",
+        "source": "criminal_law.pdf"
+    },
+    {
+        "question": "Can a sentence of death be commuted under the Indian Penal Code?",
+        "ground_truth": "Yes, under Section 54 of the Indian Penal Code, the appropriate Government may commute the sentence of death for any other punishment provided by the Code.",
+        "source": "criminal_law.pdf"
+    },
+    {
+        "question": "What is the definition of injury under the Indian Penal Code?",
+        "ground_truth": "Under Section 44 of the Indian Penal Code, the word injury denotes any harm whatever illegally caused to any person in body, mind, reputation or property.",
+        "source": "criminal_law.pdf"
+    },
+    {
+        "question": "What is the purpose of labour legislation in India?",
+        "ground_truth": "The purpose of labour legislation in India is to regulate industrial relations, workplace health and safety, and employment standards including general holidays, annual leave, working hours, unfair dismissals, minimum wage, layoff procedures and severance pay.",
+        "source": "Labour_Act.pdf"
+    },
+    {
+        "question": "What does the Maternity Benefit Act 1961 cover?",
+        "ground_truth": "The Maternity Benefit Act 1961 is listed among the important labour laws in India and covers maternity benefits for women workers.",
+        "source": "Labour_Act.pdf"
+    },
+    {
+        "question": "What is the Employees State Insurance Act 1948?",
+        "ground_truth": "The Employees State Insurance Act 1948 is one of the important labour laws in India covered in the document, providing for employee state insurance benefits.",
+        "source": "Labour_Act.pdf"
+    },
+    {
+        "question": "What are unfair labour practices?",
+        "ground_truth": "Unfair labour practices are covered as a distinct topic in the Labour Laws document under a dedicated chapter, addressing practices that are prohibited in employer-employee relations.",
+        "source": "Labour_Act.pdf"
+    },
+    {
+        "question": "What does the Factories Act 1948 cover?",
+        "ground_truth": "The Factories Act 1948 is one of the important labour laws covered in the document, regulating working conditions in factories in India.",
+        "source": "Labour_Act.pdf"
+    }
+]
