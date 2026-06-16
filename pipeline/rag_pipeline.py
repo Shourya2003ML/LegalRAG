@@ -6,6 +6,8 @@ from prompts.prompts import NAIVE_RAG_PROMPT, QUERY_REWRITE_PROMPT
 from configs.config import GROQ_MODEL, RAG_TYPE, EMBEDDING_MODEL
 from pydantic import SecretStr
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from guardrails.guardrail import LLMGuardrail
+
 
 load_dotenv()
 
@@ -23,6 +25,7 @@ class BasicRAGPipeline:
         self.rag_type = rag_type
         self.retriever = BasicRAGRetriever(data_dir, rag_type=rag_type, chroma_dir = chroma_dir)
         self.llm = ChatGroq(temperature = 0.2, model = groq_model, api_key = api_key)
+        self.guardrail = LLMGuardrail()
 
     def _rewrite_query(self, query, chat_history):
         """
@@ -54,6 +57,24 @@ class BasicRAGPipeline:
 
     def answer(self, query, chat_history = None, top_k = 3, use_reranking = True, use_query_rewriting = True):
 
+        #guardrail check
+        is_safe, reason = self.guardrail.check_input(query)
+        if not is_safe:
+            return {
+                "answer" : "This query cannot be processed. Please ask genuine legal question related to the uploaded documents.",
+                "sources": [],
+                "rag_type": self.rag_type,
+                "retrieval_technique": "Blocked by input guardrail",
+                "embedding_model": EMBEDDING_MODEL,
+                "top_k": top_k,
+                "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+                "rewritten_query": query,
+                "rewritting_used": False,
+                "reranking_used": False,
+                "blocked" : True,
+                "block_reason": reason
+            }
+
         #calling rewrite query if enabled
         if use_query_rewriting:
             rewritten_query = self._rewrite_query(query, chat_history)
@@ -62,7 +83,9 @@ class BasicRAGPipeline:
             rewritten_query = query
             rewriting_used = False
 
-        rewritten_query = self._rewrite_query(query, chat_history)
+        
+
+        #Retrieval
 
         results = self.retriever.retrieve(rewritten_query, top_k = top_k, use_reranking=use_reranking)
         contexts = "\n\n".join([r["content"] for r in results])
@@ -85,7 +108,13 @@ class BasicRAGPipeline:
         messages.append(HumanMessage(content = query))
 
         response = self.llm.invoke(messages)  
-        content =  response.content if hasattr(response, 'content') else response
+        content =  str(response.content) if hasattr(response, 'content') else response
+
+        #output guardrail
+        output_safe, output_reason = self.guardrail.check_output(content)
+        if not output_safe:
+            content = "The generated response did not meet quality standard. Please rephrase your question or try again."
+        
         return{
             "answer" : content,
             "sources" : sources,
@@ -95,8 +124,11 @@ class BasicRAGPipeline:
             "top_k" : top_k,
             "reranker_model" : "cross-encoder/ms-marco-MiniLM-L-6-v2",
             "rewritten_query" : rewritten_query,
-            "rewritten_used" : rewriting_used,
+            "rewriting_used" : rewriting_used,
             "reranking_used" : use_reranking,
+            "blocked": False,
+            "blocked_reason": "",
+            "contexts": [r["content"] for r in results],
         }
 
     def get_pipeline_info(self):
