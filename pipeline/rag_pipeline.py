@@ -24,7 +24,7 @@ class BasicRAGPipeline:
     ):
         self.rag_type = rag_type
         self.retriever = BasicRAGRetriever(data_dir, rag_type=rag_type, chroma_dir = chroma_dir)
-        self.llm = ChatGroq(temperature = 0.2, model = groq_model, api_key = api_key)
+        self.llm = ChatGroq(temperature = 0.2, model = groq_model, api_key = api_key, stop_sequences=[])
         self.guardrail = LLMGuardrail()
 
     def _rewrite_query(self, query, chat_history):
