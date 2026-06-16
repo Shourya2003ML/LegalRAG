@@ -3,15 +3,21 @@ import os
 import shutil
 import atexit
 from dotenv import load_dotenv
+import uuid
 
 load_dotenv()
 
 #directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data", "source_data", "naive_rag")
-CHROMA_DIR = os.path.join(BASE_DIR, "chroma_db")
 RAG_TYPE = "naive-rag"
 MAX_FILE_MB = 10
+
+
+if "chroma_dir" not in st.session_state:
+    st.session_state.chroma_dir = os.path.join(BASE_DIR, "chroma_db", str(uuid.uuid4()))
+
+CHROMA_DIR = st.session_state.get("chroma_dir", os.path.join(BASE_DIR, "chroma_db"))
 
 # Clear any leftover data from previous sessions on fresh app load
 def startup_cleanup():
@@ -123,7 +129,7 @@ if index_btn:
             )
         else:
             startup_cleanup()
-            
+
             os.makedirs(DATA_DIR, exist_ok = True)
             saved = []
             for f in uploaded_files:
@@ -136,7 +142,7 @@ if index_btn:
             with st.spinner(f"Indexing {len(saved)} file(s)..."):
                 try:
                     from pipeline.rag_pipeline import BasicRAGPipeline
-                    pipeline = BasicRAGPipeline(data_dir = DATA_DIR, rag_type = RAG_TYPE)
+                    pipeline = BasicRAGPipeline(data_dir = DATA_DIR, rag_type = RAG_TYPE, chroma_dir = st.session_state.chroma_dir)
                     pipeline.retriever.index_pdfs()
                     st.session_state.pipeline = pipeline
                     st.session_state.indexed = True
@@ -223,7 +229,7 @@ else:
                     top_k_used      = result["top_k"]
                     rewritten_query = result.get("rewritten_query", "")
                     rewriting_used  = result.get("rewriting_used", False)
-                    reranking_used  = result.get("rerankin  g_used", False)
+                    reranking_used  = result.get("reranking_used", False)
  
                 except Exception as e:
                     answer          = f"Error: {e}"

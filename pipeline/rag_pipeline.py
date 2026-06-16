@@ -17,10 +17,11 @@ class BasicRAGPipeline:
         self, 
         data_dir, 
         groq_model = GROQ_MODEL,
-        rag_type = RAG_TYPE
+        rag_type = RAG_TYPE,
+        chroma_dir = None
     ):
         self.rag_type = rag_type
-        self.retriever = BasicRAGRetriever(data_dir, rag_type=rag_type)
+        self.retriever = BasicRAGRetriever(data_dir, rag_type=rag_type, chroma_dir = chroma_dir)
         self.llm = ChatGroq(temperature = 0.2, model = groq_model, api_key = api_key)
 
     def _rewrite_query(self, query, chat_history):
@@ -44,7 +45,7 @@ class BasicRAGPipeline:
         )
 
         response = self.llm.invoke([HumanMessage(content=prompt)])
-        rewritten = response.content.strip() if hasattr(response, "content") else query
+        rewritten = str(response.content).strip() if hasattr(response, "content") else query
 
         print(f"Original query: {query}")
         print(f"Rewritten query: {rewritten}")
@@ -53,10 +54,17 @@ class BasicRAGPipeline:
 
     def answer(self, query, chat_history = None, top_k = 3, use_reranking = True, use_query_rewriting = True):
 
-        #calling rewrite query
+        #calling rewrite query if enabled
+        if use_query_rewriting:
+            rewritten_query = self._rewrite_query(query, chat_history)
+            rewriting_used = rewritten_query != query
+        else:
+            rewritten_query = query
+            rewriting_used = False
+
         rewritten_query = self._rewrite_query(query, chat_history)
 
-        results = self.retriever.retrieve(rewritten_query, top_k = top_k)
+        results = self.retriever.retrieve(rewritten_query, top_k = top_k, use_reranking=use_reranking)
         contexts = "\n\n".join([r["content"] for r in results])
         sources = list(set(r["source"] for r in results))
         
@@ -85,7 +93,10 @@ class BasicRAGPipeline:
             "retrieval_technique" : "Hybrid (BM25 + Semantic Search + Reranking)",
             "embedding_model" : EMBEDDING_MODEL,
             "top_k" : top_k,
-            "reranker_model" : "cross-encoder/ms-marco-MiniLM-L-6-v2"
+            "reranker_model" : "cross-encoder/ms-marco-MiniLM-L-6-v2",
+            "rewritten_query" : rewritten_query,
+            "rewritten_used" : rewriting_used,
+            "reranking_used" : use_reranking,
         }
 
     def get_pipeline_info(self):

@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 class BasicRAGRetriever:
-    def __init__(self, data_dir, rag_type = RAG_TYPE):
+    def __init__(self, data_dir, rag_type = RAG_TYPE, chroma_dir = None):
         self.data_dir = data_dir
         self.rag_type = rag_type
         self.config = get_retriever_config(rag_type)
@@ -19,25 +19,26 @@ class BasicRAGRetriever:
         self.embedding = self.config["embedding"]
         self.text_splitter = self.config["text_splitter"]
         self.collection_name = self.config["collection_name"]
-        self.persist_directory = self.config["persist_directory"]
-        self.vectorstore = self.config["vectorstore"]
+        self.persist_directory = chroma_dir if chroma_dir else self.config["persist_directory"]
+        self.vectorstore = None
 
-        #Reranking and BM25 for hybrid retrieval 
+        #Reranking and BM 25 for hybrid retrieval
         self.bm25 = None
         self.bm25_chunks = []
         self.bm25_metadata = []
         self.reranker = CrossEncoder(RERANKER_MODEL)
 
+
     def index_pdfs(self):
         print(f"Indexing PDFs for collection: {self.collection_name}")
         time.sleep(0.5)
-        os.makedirs(self.persist_directory, exists_ok = True)
+        os.makedirs(self.persist_directory, exist_ok = True)
         pdf_texts = load_pdfs_from_folder(self.data_dir)
         docs = []   
         for item in pdf_texts:
             chunks = self.text_splitter.create_documents(
                 [item["text"]],
-                metadatas = [{"sources": item["filename"]}]
+                metadatas = [{"source": item["filename"]}]
             )
             docs.extend(chunks)
 
@@ -84,7 +85,7 @@ class BasicRAGRetriever:
 
         tokenized_query = query.lower().split()
         scores = self.bm25.get_scores(tokenized_query)
-        top_indices = sorted(range(len(scores)), key =lambda i : scores[i], reverse = True)
+        top_indices = sorted(range(len(scores)), key =lambda i : scores[i], reverse = True)[:top_k]
         return [
             {
                 "content" : self.bm25_chunks[i],
@@ -105,7 +106,7 @@ class BasicRAGRetriever:
                 collection_name = self.collection_name
             )
         #fetching all documents in the ChromaDB
-        all_docs = self.vectorstore._collection_get()
+        all_docs = self.vectorstore._collection.get()
         self.bm25_chunks = all_docs["documents"]
         self.bm25_metadata = all_docs["metadatas"]
         tokenized = [chunk.lower().split() for chunk in self.bm25_chunks]
@@ -124,29 +125,19 @@ class BasicRAGRetriever:
         ranked = sorted(zip(scores, candidates), key = lambda x: x[0], reverse = True)
         return [c for _, c in ranked[:top_k]]
 
-    def retrieve(self, query, top_k = TOP_K):
-        """
-        Full hybrid retrieval : BM25 + Vector + Reranking
-        """
-        if self.vectorstore is None:
-            print(f"Loading existing vector store for collection: {self.collection_name}")
-            self.vectorstore = Chroma(
-                persist_directory = self.persist_directory,
-                embedding_function = self.embedding,
-                collection_name = self.collection_name
-            )
-        docs = self.vectorstore.similarity_search(query, k = top_k)
+    def retrieve(self, query, top_k=TOP_K, use_reranking=True):
+        vector_results = self._vector_search(query, top_k=VECTOR_TOP_K)
+        bm25_results   = self._bm25_search(query, top_k=BM25_TOP_K)
 
-        #checking what source is returned by chromadb
-        print(docs[0].metadata)
-        
-        results = []
-        for doc in docs:
-            results.append({
-                "content":doc.page_content,
-                "source" : doc.metadata.get("sources", )
-            })
-        return results
+        seen, merged = set(), []
+        for result in vector_results + bm25_results:
+            if result["content"] not in seen:
+                seen.add(result["content"])
+                merged.append(result)
+
+        if use_reranking:
+            return self._rerank(query, merged, top_k=RERANK_TOP_K)
+        return merged[:top_k]
     
     def get_collection_info(self):
         """Current collection status"""
