@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import uuid
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -25,6 +26,7 @@ TEST_DATA_PATH = os.path.join(os.path.dirname(__file__), "test_data.json")
 TOP_K = 3
 USE_RERANKING = True
 
+
 #Loading test data
 def load_test_data(path):
     with open(path, "r") as f:
@@ -35,7 +37,8 @@ def init_pipeline():
     print("Initializing pipeline...")
     pipeline = BasicRAGPipeline(
         data_dir = DATA_DIR, 
-        rag_type = "naive-rag"
+        rag_type = "naive-rag",
+        chroma_dir = os.path.join(os.path.join(os.path.dirname(__file__)), "chroma_db", f"eval_{uuid.uuid4()}")
     )
     pipeline.retriever.index_pdfs()
     print("Pipeline ready")
@@ -54,7 +57,7 @@ def run_pipeline(pipeline, test_data):
         question = item["question"]
         ground_truth = item["ground_truth"]
 
-        print(f"[(i+1)/{len(test_data)}] {question}")
+        print(f"[{i+1}/{len(test_data)}] {question}")
 
         try:
             result = pipeline.answer(
@@ -111,15 +114,15 @@ def run_evaluation(dataset):
     )
 
     results = evaluate(
-        dataset = dataset,
+        dataset,
         metrics = [
             faithfulness,
             answer_relevancy,
             context_precision,
             context_recall,
         ],
-        llm = llm,
-        embeddings = embeddings,
+        #llm = llm,
+        #embeddings = embeddings,
     )
 
     return results
@@ -133,16 +136,16 @@ def print_results(results):
     scores = results.to_pandas()
 
     metrics = {
-        "Faithfullness": scores["faithfullness"].mean(),
+        "Faithfulness": scores["faithfullness"].mean(),
         "Answer Relevancy": scores["answer_relevancy"].mean(),
         "Context Precision": scores["context_precision"].mean(),
         "Context Recall": scores["context_recall"].mean(),
     }
 
-    for metric, score in metrics.items():
-        bar = "#" * int(score*20)
-        empty = "-" * (20 - int(score * 20))
-        print(f"{metric: < 20} [{bar}{empty}] {score:.3f}")
+    for metric, value in metrics.items():
+        bar = "#" * int(value*20)
+        empty = "-" * (20 - int(value * 20))
+        print(f"{metric: < 20} [{bar}{empty}] {value    :.3f}")
 
     print("-"*50)
     print(f"Overall average: {sum(metrics.values())/ len(metrics):.3f}")
