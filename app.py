@@ -7,9 +7,6 @@ import uuid
 
 load_dotenv()
 
-#Restricting to only 10 mb
-st.set_option('server.maxUploadSize', 10)
-
 #directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data", "source_data", "naive_rag")
